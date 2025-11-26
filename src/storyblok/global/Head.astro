@@ -61,14 +61,14 @@ if (theme.fonts) {
   theme.fonts.map((font) => {
     css += `
       @font-face {
-        font-family: ${font.nom};
+        font-family: '${font.nom}';
         font-style: ${font.style};
         font-weight: ${font.weights};
         src: url('/fonts/${font.nom}.woff2') format('woff2');
         font-display: swap;
       }
       ${font.selector} {
-        font-family: ${font.nom}, ${font.fallback};
+        font-family: '${font.nom}';
         ${font.css ? font.css : ''}
       }
     `
