@@ -1,0 +1,63 @@
+---
+// SafeImage: drop-in replacement for `Image` from 'astro:assets' for remote
+// Storyblok assets. It never throws at build/render time:
+//
+// - `astro:assets` <Image inferSize> fetches the remote file to infer
+//   dimensions. A deleted Storyblok asset (404) makes that fetch throw and
+//   breaks the whole page.
+// - This component renders a plain <img> instead, so a missing remote file
+//   can never crash SSR/build. Broken images hide themselves silently via
+//   onerror, both for the <img> itself and (optionally) its wrapper.
+//
+// Extra astro:assets-only props (layout, inferSize, priority, ...) are
+// accepted and ignored so call sites don't need to change their attributes.
+interface Props {
+  src?: string
+  alt?: string
+  class?: string
+  loading?: 'lazy' | 'eager'
+  priority?: boolean
+  fetchpriority?: 'high' | 'low' | 'auto'
+  decoding?: 'async' | 'sync' | 'auto'
+  width?: number | string
+  height?: number | string
+  // astro:assets-specific props to swallow
+  layout?: string
+  inferSize?: boolean
+  [key: string]: any
+}
+
+const {
+  src,
+  alt = '',
+  class: className,
+  loading,
+  priority,
+  fetchpriority,
+  decoding = 'async',
+  // swallow astro:assets-only props so they are not spread onto <img>
+  layout: _layout,
+  inferSize: _inferSize,
+  ...rest
+} = Astro.props
+
+const trimmedSrc = typeof src === 'string' ? src.trim() : ''
+const isEager = priority === true || loading === 'eager'
+const loadingAttr = isEager ? 'eager' : loading === 'lazy' ? 'lazy' : 'lazy'
+const fetchPriorityAttr = fetchpriority ?? (isEager ? 'high' : 'auto')
+---
+
+{
+  trimmedSrc && (
+    <img
+      src={trimmedSrc}
+      alt={alt ?? ''}
+      class={className}
+      loading={loadingAttr}
+      fetchpriority={fetchPriorityAttr}
+      decoding={decoding}
+      onerror="this.style.display='none'"
+      {...rest}
+    />
+  )
+}
