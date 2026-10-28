@@ -3,26 +3,11 @@ import { storyblokEditable } from '@storyblok/astro'
 import RichText from './utils/RichText.astro'
 import NetlifyImage from './utils/NetlifyImage.astro'
 import InlineSvg from './utils/InlineSvg.astro'
+import linkHref from '../utils/linkHref'
 
 const { blok } = Astro.props
 
 const isSvg = (filename) => typeof filename === 'string' && /\.svg(\?.*)?$/i.test(filename)
-
-// Storyblok multilinks can be empty, or point to a story, a URL, an email or an asset.
-const linkHref = (link) => {
-  if (!link || typeof link !== 'object') return null
-
-  if (link.linktype === 'email') return link.email ? `mailto:${link.email}` : null
-  if (link.linktype === 'asset') return link.url || null
-
-  if (link.linktype === 'story') {
-    const slug = link.story?.full_slug || link.story?.url || link.cached_url
-    if (!slug) return null
-    return slug.startsWith('/') ? slug : `/${slug}`
-  }
-
-  return link.url || link.cached_url || null
-}
 ---
 
 <section class="container" {...storyblokEditable(blok)}>
