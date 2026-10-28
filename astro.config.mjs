@@ -27,10 +27,14 @@ const storyblokStories = await Storyblok.get("cdn/stories", {
 });
 
 // 3. Format the data
+// Pages whose "Doit apparaître dans le sitemap ?" field is unchecked are
+// excluded from the generated sitemap.
+const siteOrigin = siteurl.replace(/\/+$/, "");
 const filteredUrls = [];
 storyblokStories.data.stories.map((story) => {
   if (story.content?.sitemap === false) {
-    filteredUrls.push(siteurl + "/" + story.full_slug + "/");
+    const path = story.full_slug === "home" ? "/" : `/${story.full_slug}/`;
+    filteredUrls.push(`${siteOrigin}${path}`);
   }
 });
 

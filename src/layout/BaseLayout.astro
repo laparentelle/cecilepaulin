@@ -109,6 +109,81 @@ const logo = logoData.story.content.logo
       }
 
       requestAnimationFrame(raf)
+
+      // Hash links (#lieu, ...) must scroll to the element's layout position.
+      // Entrance animations (AOS) translate whole sections while they animate,
+      // so the browser's default jump lands too far: once the section settles
+      // back to its layout position, the target ends up above the viewport.
+      const layoutTop = (element) => {
+        let top = 0
+        let node = element
+        while (node) {
+          top += node.offsetTop
+          node = node.offsetParent
+        }
+        return top
+      }
+
+      let anchorNavigation = 0
+      const cancelAnchorCorrection = () => anchorNavigation++
+
+      const scrollToHash = (hash, options = {}) => {
+        let id
+        try {
+          id = decodeURIComponent(hash.replace(/^#/, ''))
+        } catch {
+          return false
+        }
+        const target = id ? document.getElementById(id) : null
+        if (!target) return false
+
+        const navigation = ++anchorNavigation
+        const targetTop = () => layoutTop(target)
+
+        if (options.immediate) {
+          lenis.scrollTo(targetTop(), { immediate: true })
+        } else {
+          lenis.scrollTo(targetTop(), options)
+        }
+
+        // Lazy images above the target can grow the page while it scrolls:
+        // re-align once the scroll has settled, unless the user took over.
+        const startedAt = performance.now()
+        const correct = () => {
+          if (navigation !== anchorNavigation) return
+          if (lenis.isScrolling && performance.now() - startedAt < 4000) {
+            requestAnimationFrame(correct)
+            return
+          }
+          if (Math.abs(targetTop() - window.scrollY) > 4) {
+            lenis.scrollTo(targetTop(), { immediate: true })
+          }
+        }
+        requestAnimationFrame(correct)
+
+        return true
+      }
+
+      ;['wheel', 'touchstart', 'keydown'].forEach((eventName) =>
+        window.addEventListener(eventName, cancelAnchorCorrection, { passive: true })
+      )
+
+      document.addEventListener('click', (event) => {
+        const link = event.target instanceof Element ? event.target.closest('a[href^="#"]') : null
+        if (!link) return
+        const hash = link.getAttribute('href')
+        if (!hash || hash === '#') return
+        if (!scrollToHash(hash)) return
+        event.preventDefault()
+        history.pushState(null, '', hash)
+      })
+
+      window.addEventListener('hashchange', () => scrollToHash(location.hash))
+
+      if (location.hash) {
+        window.addEventListener('load', () => scrollToHash(location.hash, { immediate: true }))
+      }
+
       ;(function () {
         var backTop = document.getElementsByClassName('js-back-to-top')[0]
         if (backTop) {
