@@ -27,6 +27,23 @@ renderedRichText = renderedRichText?.replaceAll(
   '<li>',
   `<li><svg class="inline mr-4 size-3.5" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`
 )
+
+// Storyblok renders internal story links with the URL stored in the link
+// field. Normalise them so every internal link ends with a trailing slash,
+// matching the URLs Netlify actually serves.
+const normalizeInternalHref = (href) => {
+  const [beforeHash, hash] = href.split('#')
+  const [path, query] = beforeHash.split('?')
+  if (path === '/' || path.endsWith('/') || /\.[a-z0-9]+$/i.test(path)) return href
+  return `${path}/${query ? `?${query}` : ''}${hash ? `#${hash}` : ''}`
+}
+
+renderedRichText = renderedRichText
+  ?.replace(
+    /(<a\b[^>]*?\bhref=")(\/[^"]*)(")/gi,
+    (_match, start, href, end) => `${start}${normalizeInternalHref(href)}${end}`
+  )
+  ?.replace(/\sstory="\[object Object\]"/gi, '')
 ---
 
 <div class="prose-lg xl:prose-xl rich-text max-w-prose">

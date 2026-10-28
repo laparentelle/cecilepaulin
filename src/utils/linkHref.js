@@ -1,4 +1,5 @@
 import toUrl from "./toUrl";
+import withTrailingSlash from "./withTrailingSlash";
 
 /**
  * Resolve a Storyblok multilink field to an href.
@@ -19,7 +20,7 @@ export default function linkHref(link) {
   if (link.linktype === "story") {
     const slug = link.story?.full_slug || link.story?.url || link.cached_url;
     if (!slug) return null;
-    return slug.startsWith("/") ? slug : `/${slug}`;
+    return withTrailingSlash(slug.startsWith("/") ? slug : `/${slug}`);
   }
 
   const url = link.url || link.cached_url;

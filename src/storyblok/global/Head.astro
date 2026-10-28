@@ -5,6 +5,7 @@
 
 import { useStoryblokApi } from '@storyblok/astro'
 import isPreview from '../../utils/isPreview'
+import withTrailingSlash from '../../utils/withTrailingSlash'
 
 import { converter, formatCss } from 'culori'
 
@@ -87,6 +88,14 @@ const {
   ogImageAlt,
   schema
 } = Astro.props
+
+// Canonical stays on the site's configured domain, with a trailing slash,
+// so it always matches the URL Netlify actually serves.
+const canonicalHref = !canonical
+  ? Astro.url.href
+  : /^https?:\/\//i.test(canonical)
+    ? canonical
+    : new URL(withTrailingSlash(`/${String(canonical).replace(/^\/+/, '')}`), Astro.site).href
 ---
 
 <head>
@@ -101,8 +110,7 @@ const {
 
   <meta name="generator" content={Astro.generator} />
 
-  {canonical && <link rel="canonical" href={Astro.url.href + canonical} />}
-  {!canonical && <link rel="canonical" href={Astro.url.href} />}
+  <link rel="canonical" href={canonicalHref} />
 
   {description && <meta name="description" content={description} />}
 
@@ -119,7 +127,7 @@ const {
   {title && <meta property="og:title" content={title} />}
   <meta property="og:type" content="website" />
   {ogImage && <meta property="og:image" content={ogImage} />}
-  <meta property="og:url" content={Astro.url.href} />
+  <meta property="og:url" content={canonicalHref} />
 
   {description && <meta property="og:description" content={description} />}
   <meta property="og:locale" content="fr_FR" />
@@ -143,9 +151,9 @@ const {
   }
 
   <!-- Load AOS script asynchonously -->
-  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="aos.css" />
+  <link rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'" href="/aos.css" />
   <noscript>
-    <link rel="stylesheet" href="aos.css" />
+    <link rel="stylesheet" href="/aos.css" />
   </noscript>
 
   <slot />
