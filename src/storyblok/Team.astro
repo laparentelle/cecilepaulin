@@ -2,7 +2,11 @@
 import { storyblokEditable } from '@storyblok/astro'
 import RichText from './utils/RichText.astro'
 import NetlifyImage from './utils/NetlifyImage.astro'
+import InlineSvg from './utils/InlineSvg.astro'
+
 const { blok } = Astro.props
+
+const isSvg = (filename) => typeof filename === 'string' && /\.svg(\?.*)?$/i.test(filename)
 ---
 
 <section class="container" {...storyblokEditable(blok)}>
@@ -18,13 +22,23 @@ const { blok } = Astro.props
           {person.url && (
             <a href={'/' + person.url?.story?.full_slug}>
               <div class="flex flex-col gap-4">
-                {person.image?.filename && (
-                  <NetlifyImage
+                {isSvg(person.image?.filename) ? (
+                  <InlineSvg
                     src={person.image.filename}
                     alt={person.image.alt}
-                    class="object-cover mx-auto rounded-[var(--radius-box)] size-full lg:size-36"
-                    loading={person.image.loading === 'eager' ? 'eager' : 'lazy'}
+                    colorize
+                    class="mx-auto rounded-[var(--radius-box)] size-full lg:size-36"
+                    innerclass="h-full w-full"
                   />
+                ) : (
+                  person.image?.filename && (
+                    <NetlifyImage
+                      src={person.image.filename}
+                      alt={person.image.alt}
+                      class="object-cover mx-auto rounded-[var(--radius-box)] size-full lg:size-36"
+                      loading={person.image.loading === 'eager' ? 'eager' : 'lazy'}
+                    />
+                  )
                 )}
                 {(person.nom || person.fonction) && (
                   <footer class="mt-6">
@@ -37,13 +51,23 @@ const { blok } = Astro.props
           )}
           {!person.url && (
             <div class="flex flex-col gap-4">
-              {person.image?.filename && (
-                <NetlifyImage
+              {isSvg(person.image?.filename) ? (
+                <InlineSvg
                   src={person.image.filename}
                   alt={person.image.alt}
-                  class="object-cover mx-auto rounded-[var(--radius-box)] size-full lg:size-36"
-                  loading={person.image.loading === 'eager' ? 'eager' : 'lazy'}
+                  colorize
+                  class="mx-auto rounded-[var(--radius-box)] size-full lg:size-36"
+                  innerclass="h-full w-full"
                 />
+              ) : (
+                person.image?.filename && (
+                  <NetlifyImage
+                    src={person.image.filename}
+                    alt={person.image.alt}
+                    class="object-cover mx-auto rounded-[var(--radius-box)] size-full lg:size-36"
+                    loading={person.image.loading === 'eager' ? 'eager' : 'lazy'}
+                  />
+                )
               )}
               {(person.nom || person.fonction) && (
                 <footer class="mt-6">
