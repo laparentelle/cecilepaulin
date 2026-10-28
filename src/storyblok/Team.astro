@@ -7,6 +7,22 @@ import InlineSvg from './utils/InlineSvg.astro'
 const { blok } = Astro.props
 
 const isSvg = (filename) => typeof filename === 'string' && /\.svg(\?.*)?$/i.test(filename)
+
+// Storyblok multilinks can be empty, or point to a story, a URL, an email or an asset.
+const linkHref = (link) => {
+  if (!link || typeof link !== 'object') return null
+
+  if (link.linktype === 'email') return link.email ? `mailto:${link.email}` : null
+  if (link.linktype === 'asset') return link.url || null
+
+  if (link.linktype === 'story') {
+    const slug = link.story?.full_slug || link.story?.url || link.cached_url
+    if (!slug) return null
+    return slug.startsWith('/') ? slug : `/${slug}`
+  }
+
+  return link.url || link.cached_url || null
+}
 ---
 
 <section class="container" {...storyblokEditable(blok)}>
@@ -17,40 +33,13 @@ const isSvg = (filename) => typeof filename === 'string' && /\.svg(\?.*)?$/i.tes
     role="list"
     class="mt-12 text-center grid sm:grid-cols-2 md:grid-cols-3 lg:divide-x divide-base-content/50 lg:grid-cols-4 lg:mt-24">
     {
-      blok.team?.map((person, index) => (
-        <li class="p-8" data-aos="fade-up" data-aos-duration={1000 + index * 500}>
-          {person.url && (
-            <a href={'/' + person.url?.story?.full_slug}>
-              <div class="flex flex-col gap-4">
-                {isSvg(person.image?.filename) ? (
-                  <InlineSvg
-                    src={person.image.filename}
-                    alt={person.image.alt}
-                    colorize
-                    class="mx-auto rounded-[var(--radius-box)] size-full lg:size-36"
-                    innerclass="h-full w-full"
-                  />
-                ) : (
-                  person.image?.filename && (
-                    <NetlifyImage
-                      src={person.image.filename}
-                      alt={person.image.alt}
-                      class="object-cover mx-auto rounded-[var(--radius-box)] size-full lg:size-36"
-                      loading={person.image.loading === 'eager' ? 'eager' : 'lazy'}
-                    />
-                  )
-                )}
-                {(person.nom || person.fonction) && (
-                  <footer class="mt-6">
-                    {person.nom && <div class="font-semibold">{person.nom}</div>}
-                    {person.fonction && <div class="text-sm text-base-content/95">{person.fonction}</div>}
-                  </footer>
-                )}
-              </div>
-            </a>
-          )}
-          {!person.url && (
-            <div class="flex flex-col gap-4">
+      blok.team?.map((person, index) => {
+        const href = linkHref(person.url)
+        const Wrapper = href ? 'a' : 'div'
+
+        return (
+          <li class="p-8" data-aos="fade-up" data-aos-duration={1000 + index * 500}>
+            <Wrapper {...(href ? { href } : {})} class="flex flex-col gap-4">
               {isSvg(person.image?.filename) ? (
                 <InlineSvg
                   src={person.image.filename}
@@ -75,10 +64,10 @@ const isSvg = (filename) => typeof filename === 'string' && /\.svg(\?.*)?$/i.tes
                   {person.fonction && <div class="text-sm text-base-content/95">{person.fonction}</div>}
                 </footer>
               )}
-            </div>
-          )}
-        </li>
-      ))
+            </Wrapper>
+          </li>
+        )
+      })
     }
   </ul>
 </section>
