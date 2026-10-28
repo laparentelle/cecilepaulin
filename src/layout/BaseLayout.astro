@@ -149,14 +149,17 @@ const logo = logoData.story.content.logo
         // Lazy images above the target can grow the page while it scrolls:
         // re-align once the scroll has settled, unless the user took over.
         const startedAt = performance.now()
+        let corrections = 0
         const correct = () => {
           if (navigation !== anchorNavigation) return
-          if (lenis.isScrolling && performance.now() - startedAt < 4000) {
+          if (lenis.isScrolling && performance.now() - startedAt < 6000) {
             requestAnimationFrame(correct)
             return
           }
-          if (Math.abs(targetTop() - window.scrollY) > 4) {
-            lenis.scrollTo(targetTop(), { immediate: true })
+          if (Math.abs(targetTop() - window.scrollY) > 4 && corrections < 3) {
+            corrections++
+            lenis.scrollTo(targetTop())
+            requestAnimationFrame(correct)
           }
         }
         requestAnimationFrame(correct)
