@@ -89,10 +89,11 @@ const {
   schema
 } = Astro.props
 
-// Canonical stays on the site's configured domain, with a trailing slash,
-// so it always matches the URL Netlify actually serves.
+// Canonical stays on the site's configured domain, with a trailing slash and
+// without query strings, so it always matches the URL Netlify actually serves.
+const currentHref = new URL(Astro.url.pathname, Astro.url.origin).href
 const canonicalHref = !canonical
-  ? Astro.url.href
+  ? currentHref
   : /^https?:\/\//i.test(canonical)
     ? canonical
     : new URL(withTrailingSlash(`/${String(canonical).replace(/^\/+/, '')}`), Astro.site).href
