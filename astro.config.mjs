@@ -76,4 +76,7 @@ export default defineConfig({
   vite: {
     plugins: [devtoolsJson(), tailwindcss()],
   },
+  image: {
+    domains: ["a.storyblok.com"],
+  },
 });
