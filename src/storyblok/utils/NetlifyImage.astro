@@ -41,36 +41,40 @@ if (noremote) {
     }
 
     let urlw = new URL(newUrl)
+    // Relative URLs keep images working on preview/deployment hostnames.
+    const relative = (u) => u.pathname + u.search
     urlw.searchParams.set('w', '300')
-    url300 = urlw.href
+    url300 = relative(urlw)
     srcset = url300 + ' 300w'
     if (width > 723) {
       urlw.searchParams.set('w', '723')
-      url723 = urlw.href
+      url723 = relative(urlw)
       srcset += ', ' + url723 + ' 723w'
     }
     if (width > 1080) {
       urlw.searchParams.set('w', '1080')
-      url1080 = urlw.href
+      url1080 = relative(urlw)
       srcset += ', ' + url1080 + ' 1080w'
     }
     if (width > 1560) {
       urlw.searchParams.set('w', '1560')
-      url1560 = urlw.href
+      url1560 = relative(urlw)
       srcset += ', ' + url1560 + ' 1560w'
     }
     if (width > 1920) {
       urlw.searchParams.set('w', '1920')
-      url1920 = urlw.href
+      url1920 = relative(urlw)
       srcset += ', ' + url1920 + ' 1920w'
     }
     if (width > 2048) {
       urlw.searchParams.set('w', '2048')
-      url2048 = urlw.href
+      url2048 = relative(urlw)
       srcset += ', ' + url2048 + ' 2048w'
     }
   }
 }
+
+const srcValue = !newUrl ? undefined : typeof newUrl === 'string' ? newUrl : newUrl.pathname + newUrl.search
 ---
 
 {noremote && <img src={newUrl} alt={alt} class={classList} loading={loading} fetchpriority={fetchpriorityValue} />}
@@ -79,7 +83,7 @@ if (noremote) {
     <img
       srcset={srcset}
       sizes={sizes}
-      src={newUrl.href}
+      src={srcValue}
       alt={alt}
       class={classList}
       width={width}
