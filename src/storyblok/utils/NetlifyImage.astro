@@ -19,50 +19,56 @@ let url300, url723, url1080, url1560, url1920, url2048, newUrl, width, height, s
 if (noremote) {
   newUrl = src
 } else if (src) {
-  newUrl = new URL('.netlify/images', Astro.site)
-  newUrl.searchParams.set('url', src)
+  if (import.meta.env.DEV) {
+    // The Vercel image endpoint only exists on Vercel. Locally, load the
+    // original Storyblok asset directly.
+    newUrl = new URL(src, origin)
+  } else {
+    // Vercel Image Optimization endpoint (enabled by `imageService` in the
+    // @astrojs/vercel adapter). Resolves against the current origin so preview
+    // deployments optimize through their own host instead of production.
+    newUrl = new URL('/_vercel/image', origin)
+    newUrl.searchParams.set('url', src)
+    newUrl.searchParams.set('q', '80')
 
-  try {
-    let meta = await probe(src)
-    width = meta.width
-    height = meta.height
-  } catch (error) {
-    width = 0
-    height = 0
-  }
+    try {
+      let meta = await probe(src)
+      width = meta.width
+      height = meta.height
+    } catch (error) {
+      width = 0
+      height = 0
+    }
 
-  // let meta = await probe(src)
-  // width = meta.width
-  // height = meta.height
-
-  let urlw = new URL(newUrl)
-  urlw.searchParams.set('w', '300')
-  url300 = urlw.href
-  srcset = url300 + ' 300w'
-  if (width > 723) {
-    urlw.searchParams.set('w', '723')
-    url723 = urlw.href
-    srcset += ', ' + url723 + ' 723w'
-  }
-  if (width > 1080) {
-    urlw.searchParams.set('w', '1080')
-    url1080 = urlw.href
-    srcset += ', ' + url1080 + ' 1080w'
-  }
-  if (width > 1560) {
-    urlw.searchParams.set('w', '1560')
-    url1560 = urlw.href
-    srcset += ', ' + url1560 + ' 1560w'
-  }
-  if (width > 1920) {
-    urlw.searchParams.set('w', '1920')
-    url1920 = urlw.href
-    srcset += ', ' + url1920 + ' 1920w'
-  }
-  if (width > 2048) {
-    urlw.searchParams.set('w', '2048')
-    url2048 = urlw.href
-    srcset += ', ' + url2048 + ' 2048w'
+    let urlw = new URL(newUrl)
+    urlw.searchParams.set('w', '300')
+    url300 = urlw.href
+    srcset = url300 + ' 300w'
+    if (width > 723) {
+      urlw.searchParams.set('w', '723')
+      url723 = urlw.href
+      srcset += ', ' + url723 + ' 723w'
+    }
+    if (width > 1080) {
+      urlw.searchParams.set('w', '1080')
+      url1080 = urlw.href
+      srcset += ', ' + url1080 + ' 1080w'
+    }
+    if (width > 1560) {
+      urlw.searchParams.set('w', '1560')
+      url1560 = urlw.href
+      srcset += ', ' + url1560 + ' 1560w'
+    }
+    if (width > 1920) {
+      urlw.searchParams.set('w', '1920')
+      url1920 = urlw.href
+      srcset += ', ' + url1920 + ' 1920w'
+    }
+    if (width > 2048) {
+      urlw.searchParams.set('w', '2048')
+      url2048 = urlw.href
+      srcset += ', ' + url2048 + ' 2048w'
+    }
   }
 }
 ---

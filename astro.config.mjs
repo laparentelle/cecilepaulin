@@ -1,8 +1,8 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, passthroughImageService } from "astro/config";
 import { storyblok } from "@storyblok/astro";
 import { loadEnv } from "vite";
-import netlify from "@astrojs/netlify";
+import vercel from "@astrojs/vercel";
 import tailwindcss from "@tailwindcss/vite";
 import sitemap from "@astrojs/sitemap";
 import StoryblokClient from "storyblok-js-client";
@@ -41,7 +41,20 @@ storyblokStories.data.stories.map((story) => {
 // https://astro.build/config
 export default defineConfig({
   output: env.STORYBLOK_IS_PREVIEW === "yes" ? "server" : "static",
-  adapter: netlify(),
+  adapter: vercel({
+    imageService: true,
+    imagesConfig: {
+      minimumCacheTTL: 86400,
+      sizes: [300, 723, 1080, 1560, 1920, 2048],
+      remotePatterns: [
+        {
+          protocol: "https",
+          hostname: "a.storyblok.com",
+          pathname: `/f/${env.STORYBLOK_SPACEID}/**`,
+        },
+      ],
+    },
+  }),
   integrations: [
     storyblok({
       accessToken: env.STORYBLOK_TOKEN,
@@ -81,6 +94,13 @@ export default defineConfig({
     plugins: [devtoolsJson(), tailwindcss()],
   },
   image: {
-    domains: ["a.storyblok.com"],
+    service: passthroughImageService(),
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "a.storyblok.com",
+        pathname: `/f/${env.STORYBLOK_SPACEID}/**`,
+      },
+    ],
   },
 });
